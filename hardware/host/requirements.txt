@@ -1,0 +1,4 @@
+pyserial==3.5
+simpleobsws==1.4.3
+websockets>=13,<18
+pytest>=8

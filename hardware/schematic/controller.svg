@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TakeDeck TD-01 — 배선도 (wiring / schematic), drawn by hand for this project.
+  Connects to: WIRING.md (net table) and schematic/netlist.net (text netlist).
+
+  Convention: a dot means connected. A wire that crosses another wire with a
+  small white gap and no dot is NOT connected. This is a wiring diagram of the
+  prototype (hand soldered, no PCB); it has not been checked against a physical
+  assembly - see HARDWARE_VERIFICATION.md.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 950" width="1280" height="950"
+     font-family="'DejaVu Sans','Apple SD Gothic Neo',sans-serif">
+  <style>
+    .wire { stroke: #1a1a1a; stroke-width: 2.4; fill: none; stroke-linecap: round; }
+    .pwr3v3 { stroke: #c0392b; stroke-width: 2.8; fill: none; }
+    .gndwire { stroke: #1a1a1a; stroke-width: 2.8; fill: none; }
+    .pin { stroke: #1a1a1a; stroke-width: 2.4; fill: none; }
+    .body { fill: #f7f8fa; stroke: #24282f; stroke-width: 2; }
+    .blocktitle { font-size: 17px; font-weight: 700; fill: #101418; }
+    .blocknote { font-size: 12px; fill: #5b6472; }
+    .pinname { font-size: 13px; fill: #2b3038; font-family: monospace; }
+    .netlabel { font-size: 13px; font-weight: 700; fill: #0f172a; font-family: monospace; }
+    .rail { font-size: 15px; font-weight: 700; }
+    .note { font-size: 12.5px; fill: #3d4653; }
+    .title { font-size: 24px; font-weight: 700; fill: #0b0f14; }
+    .subtitle { font-size: 13.5px; fill: #5b6472; }
+    .gap { fill: #ffffff; stroke: none; }
+    .dot { fill: #1a1a1a; }
+    .comp { font-size: 12.5px; fill: #3d4653; font-family: monospace; }
+  </style>
+
+  <rect x="0" y="0" width="1280" height="950" fill="#ffffff"/>
+
+  <text class="title" x="40" y="46">TakeDeck TD-01 — 배선도</text>
+  <text class="subtitle" x="40" y="68">USB OBS 촬영 컨트롤러 · XIAO RP2040 + SSD1306 OLED + MX 키 4개 + 적색 LED · 3.3 V 단일 전원</text>
+
+  <!-- ======================= power rails ======================= -->
+  <line class="pwr3v3" x1="90" y1="110" x2="1090" y2="110"/>
+  <text class="rail" x="96" y="100" fill="#c0392b">3V3 (XIAO 3V3_OUT, 최대 57 mA)</text>
+  <text class="rail" x="1046" y="100" fill="#c0392b">3V3</text>
+
+  <line class="gndwire" x1="70" y1="820" x2="1150" y2="820"/>
+  <text class="rail" x="76" y="845" fill="#111">GND (공통)</text>
+  <text class="rail" x="1080" y="845" fill="#111">GND</text>
+
+  <!-- ======================= XIAO RP2040 ======================= -->
+  <rect class="body" x="150" y="250" width="200" height="340" rx="8"/>
+  <text class="blocktitle" x="170" y="280">J1  XIAO RP2040</text>
+  <text class="blocknote" x="168" y="300">USB-C 5 V → 3.3 V LDO</text>
+
+  <!-- left side pins -->
+  <line class="pin" x1="150" y1="330" x2="122" y2="330"/>
+  <text class="pinname" x="158" y="352">5V (VBUS)</text>
+  <line class="pin" x1="150" y1="420" x2="122" y2="420"/>
+  <text class="pinname" x="158" y="442">3V3</text>
+  <line class="pin" x1="150" y1="500" x2="122" y2="500"/>
+  <text class="pinname" x="158" y="522">GND</text>
+
+  <!-- 3V3 to rail -->
+  <path class="pwr3v3" d="M122 420 L90 420 L90 110"/>
+  <circle class="dot" cx="90" cy="110" r="4"/>
+
+  <!-- GND to rail -->
+  <path class="gndwire" d="M122 500 L70 500 L70 820"/>
+  <circle class="dot" cx="70" cy="820" r="4"/>
+
+  <!-- 5V not used -->
+  <line class="pin" x1="122" y1="330" x2="108" y2="330" stroke-dasharray="3 3"/>
+  <text class="comp" x="60" y="322">NC</text>
+  <text class="comp" x="32" y="352">(미사용)</text>
+
+  <!-- right side pins -->
+  <line class="pin" x1="350" y1="320" x2="380" y2="320"/>
+  <text class="pinname" x="342" y="312" text-anchor="end">D0 / GPIO26</text>
+  <line class="pin" x1="350" y1="360" x2="380" y2="360"/>
+  <text class="pinname" x="342" y="352" text-anchor="end">D1 / GPIO27</text>
+  <line class="pin" x1="350" y1="400" x2="380" y2="400"/>
+  <text class="pinname" x="342" y="392" text-anchor="end">D2 / GPIO28</text>
+  <line class="pin" x1="350" y1="440" x2="380" y2="440"/>
+  <text class="pinname" x="342" y="432" text-anchor="end">D3 / GPIO29</text>
+  <line class="pin" x1="350" y1="485" x2="380" y2="485"/>
+  <text class="pinname" x="342" y="477" text-anchor="end">D4 / GPIO6 SDA</text>
+  <line class="pin" x1="350" y1="525" x2="380" y2="525"/>
+  <text class="pinname" x="342" y="517" text-anchor="end">D5 / GPIO7 SCL</text>
+  <line class="pin" x1="350" y1="565" x2="380" y2="565"/>
+  <text class="pinname" x="342" y="557" text-anchor="end">D6 / GPIO0</text>
+
+  <!-- ======================= switches ======================= -->
+  <!-- SW1 REC : x=520 -->
+  <g>
+    <rect class="body" x="486" y="620" width="68" height="86" rx="6"/>
+    <circle cx="520" cy="624" r="3.5" fill="#1a1a1a"/>
+    <line class="wire" x1="520" y1="624" x2="506" y2="676"/>
+    <circle cx="520" cy="700" r="3.5" fill="#1a1a1a"/>
+    <line class="wire" x1="520" y1="700" x2="520" y2="820"/>
+    <circle class="dot" cx="520" cy="820" r="4"/>
+    <text class="comp" x="566" y="650">SW1</text>
+    <text class="comp" x="566" y="668">REC</text>
+  </g>
+  <!-- SW2 PREV : x=660 -->
+  <g>
+    <rect class="body" x="626" y="620" width="68" height="86" rx="6"/>
+    <circle cx="660" cy="624" r="3.5" fill="#1a1a1a"/>
+    <line class="wire" x1="660" y1="624" x2="646" y2="676"/>
+    <circle cx="660" cy="700" r="3.5" fill="#1a1a1a"/>
+    <line class="wire" x1="660" y1="700" x2="660" y2="820"/>
+    <circle class="dot" cx="660" cy="820" r="4"/>
+    <text class="comp" x="706" y="650">SW2</text>
+    <text class="comp" x="706" y="668">SCENE ◀</text>
+  </g>
+  <!-- SW3 NEXT : x=800 -->
+  <g>
+    <rect class="body" x="766" y="620" width="68" height="86" rx="6"/>
+    <circle cx="800" cy="624" r="3.5" fill="#1a1a1a"/>
+    <line class="wire" x1="800" y1="624" x2="786" y2="676"/>
+    <circle cx="800" cy="700" r="3.5" fill="#1a1a1a"/>
+    <line class="wire" x1="800" y1="700" x2="800" y2="820"/>
+    <circle class="dot" cx="800" cy="820" r="4"/>
+    <text class="comp" x="846" y="650">SW3</text>
+    <text class="comp" x="846" y="668">SCENE ▶</text>
+  </g>
+  <!-- SW4 MUTE : x=940 -->
+  <g>
+    <rect class="body" x="906" y="620" width="68" height="86" rx="6"/>
+    <circle cx="940" cy="624" r="3.5" fill="#1a1a1a"/>
+    <line class="wire" x1="940" y1="624" x2="926" y2="676"/>
+    <circle cx="940" cy="700" r="3.5" fill="#1a1a1a"/>
+    <line class="wire" x1="940" y1="700" x2="940" y2="820"/>
+    <circle class="dot" cx="940" cy="820" r="4"/>
+    <text class="comp" x="986" y="650">SW4</text>
+    <text class="comp" x="986" y="668">MUTE</text>
+  </g>
+
+  <!-- key nets: D0..D3 to the switch tops (crossings drawn with a white gap) -->
+  <path class="wire" d="M380 320 L520 320 L520 624"/>
+  <path class="wire" d="M380 360 L660 360 L660 624"/>
+  <path class="wire" d="M380 400 L800 400 L800 624"/>
+  <path class="wire" d="M380 440 L940 440 L940 624"/>
+  <!-- no-connect gaps -->
+  <circle class="gap" cx="520" cy="360" r="5"/>
+  <circle class="gap" cx="520" cy="400" r="5"/>
+  <circle class="gap" cx="660" cy="400" r="5"/>
+  <circle class="gap" cx="520" cy="440" r="5"/>
+  <circle class="gap" cx="660" cy="440" r="5"/>
+  <circle class="gap" cx="800" cy="440" r="5"/>
+  <!-- labels -->
+  <text class="netlabel" x="392" y="312" fill="#1d4ed8">KEY_REC</text>
+  <text class="netlabel" x="392" y="352" fill="#1d4ed8">KEY_PREV</text>
+  <text class="netlabel" x="392" y="392" fill="#1d4ed8">KEY_NEXT</text>
+  <text class="netlabel" x="392" y="432" fill="#1d4ed8">KEY_MUTE</text>
+
+  <!-- ======================= OLED ======================= -->
+  <rect class="body" x="780" y="170" width="230" height="190" rx="8"/>
+  <text class="blocktitle" x="798" y="198">A1  SSD1306 128×64</text>
+  <text class="blocknote" x="798" y="216">0.96" I2C · 3.3 V · 0x3C</text>
+  <text class="blocknote" x="798" y="232">27.3 × 27.3 × 2.37 mm</text>
+
+  <line class="pin" x1="780" y1="252" x2="750" y2="252"/>
+  <text class="pinname" x="788" y="248">1 VCC</text>
+  <line class="pin" x1="780" y1="292" x2="750" y2="292"/>
+  <text class="pinname" x="788" y="288">2 GND</text>
+  <line class="pin" x1="780" y1="322" x2="750" y2="322"/>
+  <text class="pinname" x="788" y="318">3 SCL</text>
+  <line class="pin" x1="780" y1="352" x2="750" y2="352"/>
+  <text class="pinname" x="788" y="348">4 SDA</text>
+
+  <!-- VCC to 3V3 -->
+  <path class="pwr3v3" d="M750 252 L700 252 L700 110"/>
+  <circle class="dot" cx="700" cy="110" r="4"/>
+  <!-- GND -->
+  <path class="gndwire" d="M750 292 L660 292 L660 820"/>
+  <circle class="dot" cx="660" cy="820" r="4"/>
+  <!-- SCL -> D5 -->
+  <path class="wire" d="M750 322 L430 322 L430 525 L380 525"/>
+  <circle class="gap" cx="660" cy="322" r="5"/>
+  <!-- SDA -> D4 -->
+  <path class="wire" d="M750 352 L470 352 L470 485 L380 485"/>
+  <circle class="gap" cx="660" cy="352" r="5"/>
+  <text class="netlabel" x="556" y="312" fill="#1d4ed8">SCL</text>
+  <text class="netlabel" x="556" y="344" fill="#1d4ed8">SDA</text>
+
+  <!-- ======================= C1 decoupling ======================= -->
+  <g>
+    <path class="pwr3v3" d="M700 252 L620 252"/>
+    <line class="wire" x1="620" y1="252" x2="620" y2="268"/>
+    <line x1="600" y1="268" x2="640" y2="268" stroke="#1a1a1a" stroke-width="3"/>
+    <line x1="600" y1="282" x2="640" y2="282" stroke="#1a1a1a" stroke-width="3"/>
+    <line class="wire" x1="620" y1="282" x2="620" y2="292"/>
+    <path class="gndwire" d="M620 292 L660 292"/>
+    <circle class="dot" cx="620" cy="252" r="4"/>
+    <circle class="dot" cx="660" cy="292" r="4"/>
+    <text class="comp" x="646" y="272">C1</text>
+    <text class="comp" x="646" y="288">100 nF</text>
+  </g>
+
+  <!-- ======================= LED + resistor ======================= -->
+  <g>
+    <path class="wire" d="M380 565 L404 565 L404 760 L440 760"/>
+    <text class="netlabel" x="392" y="557" fill="#1d4ed8">LED_DRV</text>
+    <!-- R1 -->
+    <rect x="440" y="748" width="66" height="24" fill="#ffffff" stroke="#1a1a1a" stroke-width="2.2"/>
+    <text class="comp" x="446" y="765">R1 220Ω</text>
+    <line class="wire" x1="506" y1="760" x2="540" y2="760"/>
+    <!-- LED symbol, anode left -->
+    <polygon points="540,744 540,776 566,760" fill="#c0392b" stroke="#1a1a1a" stroke-width="2"/>
+    <line x1="566" y1="742" x2="566" y2="778" stroke="#1a1a1a" stroke-width="3"/>
+    <line class="wire" x1="566" y1="760" x2="596" y2="760"/>
+    <path class="gndwire" d="M596 760 L596 820"/>
+    <circle class="dot" cx="596" cy="820" r="4"/>
+    <circle class="gap" cx="520" cy="760" r="5"/>
+    <text class="comp" x="536" y="726">D1 LED 5 mm 적색</text>
+    <text class="comp" x="536" y="790">Vf 1.85 V → 6.6 mA</text>
+  </g>
+
+  <!-- ======================= notes ======================= -->
+  <text class="note" x="40" y="880">회색 원(공백) = 선이 교차할 뿐 연결 아님 · 검은 점 = 납땜 연결 · 키 4개는 내부 풀업 사용(누르면 GND, active LOW)</text>
+  <text class="note" x="40" y="902">OLED의 I2C 풀업(4.7 kΩ)은 모듈 기판 내장을 전제. 없는 모듈이면 SDA/SCL에서 3V3로 4.7 kΩ 추가. 5V는 사용하지 않음.</text>
+  <text class="note" x="40" y="932">검증: netlist.net과 WIRING.md의 표가 이 그림과 같은 연결을 기술한다. 실물 배선·연속성 시험은 하지 않았다(HARDWARE_VERIFICATION.md).</text>
+
+  <!-- pin map box -->
+  <g>
+    <rect x="1012" y="380" width="238" height="196" rx="8" fill="#fbfbfd" stroke="#c9cfd8" stroke-width="1.5"/>
+    <text class="blocktitle" x="1028" y="404" font-size="15">핀 대응표</text>
+    <text class="comp" x="1028" y="428">D0/GPIO26 → SW1 REC</text>
+    <text class="comp" x="1028" y="448">D1/GPIO27 → SW2 ◀</text>
+    <text class="comp" x="1028" y="468">D2/GPIO28 → SW3 ▶</text>
+    <text class="comp" x="1028" y="488">D3/GPIO29 → SW4 MUTE</text>
+    <text class="comp" x="1028" y="508">D4/GPIO6  → OLED SDA</text>
+    <text class="comp" x="1028" y="528">D5/GPIO7  → OLED SCL</text>
+    <text class="comp" x="1028" y="548">D6/GPIO0  → R1 → LED</text>
+    <text class="comp" x="1028" y="568">5V        → 미사용 (NC)</text>
+  </g>
+
+</svg>

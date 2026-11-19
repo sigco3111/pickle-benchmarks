@@ -1,0 +1,15 @@
+No,부품,제조사/모델,수량,패키지/규격,참고단가(USD,추정),공식 출처,비고
+1,MCU 개발보드,Seeed Studio XIAO RP2040,1,21.0 × 17.8 mm / USB-C / 3.3 V 로직,6.0,https://wiki.seeedstudio.com/XIAO-RP2040/,RP2040 133 MHz · 264 KB SRAM · 2 MB flash · GPIO 11개. 핀맵·치수는 위키 기준
+2,OLED 디스플레이,SSD1306 0.96인치 128×64 I2C 4핀 모듈 (Winstar WEA012864D-03 계열),1,27.3 × 27.3 × 2.37 mm / I2C 0x3C / 3.3 V,4.0,https://www.winstar.com.tw/products/oled-module/graphic-oled-display/4-pin-oled.html,액티브 영역 21.74 × 10.86 mm. 장착홀 피치는 제조사별로 달라 케이스는 클립+테이프로 고정
+3,키 스위치,CHERRY MX2A RED (리니어),4,15.6 × 15.6 mm / 플레이트 컷아웃 14.0 mm / 1.5 mm 플레이트,1.2,https://www.cherry.de/en-us/product/mx2a-red,"플레이트 14×14 mm ±0.05, 플레이트 상면↔PCB 5.0 mm. 아티클 번호는 cherry.de 제품 페이지 참조"
+4,키캡,자체 3D 프린트 (enclosure/stl/keycap.stl),4,18 × 18 × 8 mm / MX 크로스 소켓,0,본 저장소 enclosure/,PLA·PETG. 소켓 치수는 실측 피팅 필요 (§HARDWARE_VERIFICATION)
+5,표시등 LED,Kingbright L-53SRD (5 mm 적색 확산),1,T-1¾ / Vf 1.85 V typ @20 mA,0.3,https://www.mouser.com/datasheet/2/239/L-53SRD-1145465.pdf,최대 30 mA. 220 Ω로 약 6.6 mA 구동
+6,LED 저항,Yageo CFR-25 220 Ω ±5% 1/4 W (또는 동급),1, axial 1/4 W,0.05,https://www.yageo.com/,3.3 V − 1.85 V = 1.45 V / 220 Ω ≈ 6.6 mA
+7,OLED 디커플링 커패시터,100 nF X7R 50 V,1,0.1 uF 세라믹,0.05,https://www.samsungsem.com/,OLED VCC-GND 사이. 모듈에 없을 때만
+8,배선,24 AWG 연선 (적/흑/황/녹 각 0.5 m),1,24 AWG,1.0,https://www.ul.com/,스위치·LED·OLED 배선. 압착 대신 직접 납땜
+9,핀 헤더 (선택),2.54 mm 1×7 암헤더,2,2.54 mm 피치,0.3,https://www.molex.com/,"XIAO 미납땜(핀 없는) 버전 구매 시. 납땜 버전이면 불필요"
+10,조립 나사,M2.5 × 8 mm 탭핑(PT) 나사,4,접시/팬 머리,0.4,https://www.bossard.com/,하판 보스(Ø2.05 파일럿)에 직접 체결. 3D 프린트용
+11,미끄럼 방지 패드,실리콘 풋 Ø8 × 0.8 mm,4,Ø8 mm,0.2,https://www.3m.com/,하판 바닥 4곳 리세스에 접착
+12,USB-C 케이블,C to C 또는 A to C **데이터** 케이블 (충전 전용 아님),1,USB 2.0 데이터,3.0,https://www.usb.org/usb-charger,"충전 전용 케이블은 데이터선이 없어 인식되지 않는다"
+13,보드 고정 폼,EVA 폼 테이프 2 mm,1,20 × 20 mm 1장,0.2,https://www.3m.com/,상판 안쪽에 붙여 XIAO가 위로 뜨지 않게
+14,열수축 튜브,Ø1.5 mm,1,1 m,0.5,https://www.3m.com/,납땜 부위 절연

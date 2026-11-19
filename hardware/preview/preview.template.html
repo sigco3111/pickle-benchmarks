@@ -1,0 +1,1007 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TakeDeck TD-01 — USB OBS 컨트롤러 3D 프리뷰 (시뮬레이션)</title>
+<style>
+  :root {
+    --bg: #0e1013;
+    --panel: rgba(20, 23, 28, 0.88);
+    --line: rgba(255, 255, 255, 0.10);
+    --text: #e7eaf0;
+    --dim: #9aa3b2;
+    --accent: #ff4b3e;
+    --ok: #35d07f;
+    --warn: #ffb020;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Segoe UI", system-ui, sans-serif; overflow: hidden; }
+  canvas { display: block; }
+  #topbar {
+    position: fixed; inset: 0 0 auto 0; height: 54px; display: flex; align-items: center;
+    gap: 14px; padding: 0 18px; background: linear-gradient(180deg, rgba(14,16,19,0.92), rgba(14,16,19,0.0));
+    pointer-events: none; z-index: 5;
+  }
+  #topbar h1 { font-size: 15px; font-weight: 650; margin: 0; letter-spacing: .02em; }
+  #topbar h1 span { color: var(--dim); font-weight: 450; margin-left: 8px; }
+  .badge {
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase; padding: 4px 9px;
+    border: 1px solid rgba(255, 176, 32, .5); color: #ffcf72; border-radius: 999px;
+    background: rgba(255, 176, 32, .08); white-space: nowrap;
+  }
+  #panel {
+    position: fixed; top: 66px; right: 16px; width: 306px; max-height: calc(100% - 84px);
+    overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    backdrop-filter: blur(14px); padding: 14px; z-index: 6; font-size: 12px;
+  }
+  #panel::-webkit-scrollbar { width: 8px; }
+  #panel::-webkit-scrollbar-thumb { background: #2b3038; border-radius: 8px; }
+  #panel h2 { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim);
+    margin: 16px 0 8px; font-weight: 600; }
+  #panel h2:first-child { margin-top: 2px; }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; }
+  button {
+    font: inherit; color: var(--text); background: #1b1f26; border: 1px solid var(--line);
+    border-radius: 8px; padding: 7px 10px; cursor: pointer; transition: .15s;
+  }
+  button:hover { background: #242a33; border-color: rgba(255,255,255,.22); }
+  button.primary { background: #2a2f38; border-color: #3b424e; }
+  button.rec { background: #3a1414; border-color: #7d2a25; color: #ffd4d1; }
+  button.rec.on { background: #b3281f; border-color: #ff6a5e; color: #fff; }
+  button.ghost { background: transparent; }
+  button[aria-pressed="true"] { border-color: #6a7484; background: #2b313a; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .slider-row { display: flex; justify-content: space-between; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .kv { display: grid; grid-template-columns: 92px 1fr; gap: 4px 8px; color: var(--dim); }
+  .kv b { color: var(--text); font-weight: 550; font-variant-numeric: tabular-nums; }
+  #log {
+    margin-top: 8px; max-height: 168px; overflow-y: auto; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px; line-height: 1.5; color: #b7c0cd; background: #12151a; border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px;
+  }
+  #log div.dir-d { color: #8fd0ff; }
+  #log div.dir-h { color: #a9f0c4; }
+  #log div.sys { color: var(--dim); }
+  #log div.warn { color: #ffc46b; }
+  .pill { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 11px;
+    border: 1px solid var(--line); color: var(--dim); }
+  .pill.on { color: #0d1a12; background: var(--ok); border-color: var(--ok); font-weight: 650; }
+  .pill.lost { color: #2a0d0d; background: var(--accent); border-color: var(--accent); font-weight: 650; }
+  .hint { color: var(--dim); line-height: 1.55; margin: 6px 0 0; }
+  #legend { position: fixed; left: 16px; bottom: 14px; font-size: 11.5px; color: var(--dim);
+    line-height: 1.6; z-index: 5; max-width: 430px; }
+  #legend b { color: var(--text); font-weight: 550; }
+  #fps { position: fixed; left: 16px; top: 16px; font-size: 11px; color: #5d6673; z-index: 5; }
+  @media (max-width: 820px) {
+    #panel { position: fixed; inset: auto 0 0 0; width: auto; max-height: 46%; border-radius: 14px 14px 0 0; }
+    #legend { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="topbar">
+  <h1>TakeDeck TD-01 <span>USB OBS 촬영 컨트롤러</span></h1>
+  <span class="badge">SIMULATION · 시뮬레이션 · 실물 하드웨어 아님</span>
+</div>
+<div id="fps"></div>
+
+<div id="panel">
+  <h2>조립 · 분해</h2>
+  <div class="slider-row"><span>타임라인</span><span id="explodeLabel">0.0 s</span></div>
+  <input id="explode" type="range" min="0" max="12" step="0.05" value="0">
+  <div class="row" style="margin-top:8px">
+    <button id="explodePlay" class="ghost">▶ 0 → 12 s</button>
+    <button id="explodeReset" class="ghost">조립 상태로</button>
+  </div>
+  <div class="row" style="margin-top:6px">
+    <button id="lidToggle">케이스 열기</button>
+    <button id="lidPeek" class="ghost">단면 보기</button>
+  </div>
+
+  <h2>시점</h2>
+  <div class="row" id="views">
+    <button data-view="iso" aria-pressed="true">아이소</button>
+    <button data-view="top">위</button>
+    <button data-view="front">정면</button>
+    <button data-view="side">측면</button>
+    <button data-view="oled">화면</button>
+  </div>
+
+  <h2>모의 조작 (OBS)</h2>
+  <div class="row">
+    <button id="btnRec" class="rec">● REC</button>
+    <button id="btnPrev">◀ SCENE</button>
+    <button id="btnNext">SCENE ▶</button>
+    <button id="btnMute" class="ghost">MUTE</button>
+  </div>
+  <div class="row" style="margin-top:6px">
+    <button id="btnLink" class="ghost">연결 끊기</button>
+    <button id="btnObs" class="ghost">OBS에서 직접 녹화</button>
+  </div>
+
+  <h2>상태</h2>
+  <div class="kv">
+    <span>링크</span><b id="stLink"><span class="pill">정상</span></b>
+    <span>OBS 녹화</span><b id="stRec">꺼짐</b>
+    <span>경과</span><b id="stTime">00:00:00</b>
+    <span>장면</span><b id="stScene">1/3 · Standby</b>
+    <span>명령</span><b id="stCmd">seq 0 · 대기 0</b>
+    <span>LED</span><b id="stLed">꺼짐</b>
+  </div>
+
+  <h2>프로토콜 로그</h2>
+  <div id="log"></div>
+
+  <p class="hint">
+    이 화면은 <b>시뮬레이션</b>입니다. OLED와 빨간 LED는 펌웨어(<code>firmware/src/ui.c</code>)와 같은
+    좌표·폰트로 그린 모의 화면이고, OBS 상태는 실제 OBS가 아니라 이 페이지의 가상 상태입니다.
+  </p>
+</div>
+
+<div id="legend">
+  <b>조작</b> 드래그 회전 · 휠 확대 · 우클릭 이동 &nbsp;|&nbsp;
+  <b>슬라이더 0–12 s</b> 키캡 → 상판 → 내부 순으로 분해 &nbsp;|&nbsp;
+  <b>케이스 열기</b> 상판만 들어 올려 내부 확인
+</div>
+
+<script id="takedeck-dims" type="application/json">__DIMS_JSON__</script>
+<script id="takedeck-font" type="text/plain">__FONT_B64__</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+// ---------------------------------------------------------------------------
+// Parameters: these come from enclosure/params.json (build_preview.py injects
+// them), so the 3D preview uses the same numbers as the STL generator.
+// ---------------------------------------------------------------------------
+const D = JSON.parse(document.getElementById('takedeck-dims').textContent);
+const CASE = D.case, KEYS = D.keys, OLED = D.oled, LED = D.led, SCREW = D.screws, XIAO = D.xiao, KC = D.keycap;
+const PLATE_Z0 = CASE.h - CASE.plate;
+const TOP_Z = CASE.h;
+const KEY_CENTERS = KEYS.centers_x.map((x) => [x, KEYS.row_y]);
+const SCENE_NAMES = ['Standby', 'Wide Shot', 'Close Up'];
+
+// ---------------------------------------------------------------------------
+// Firmware 5x7 font (font5x7.h), so the simulated OLED matches the real one.
+// ---------------------------------------------------------------------------
+const FONT = (() => {
+  const b64 = document.getElementById('takedeck-font').textContent.trim();
+  const raw = atob(b64);
+  const bytes = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+  return bytes;
+})();
+
+function oledDrawText(ctx, x, y, text, scale, inverse) {
+  const width = text.length * 6 * scale - scale;
+  if (inverse) {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x - 1, y - 1, width + 2, 7 * scale + 2);
+    ctx.fillStyle = '#000';
+  }
+  let cx = x;
+  for (const chRaw of text.toUpperCase()) {
+    let idx = chRaw.charCodeAt(0) - 0x20;
+    if (idx < 0 || idx > 94) idx = '?'.charCodeAt(0) - 0x20;
+    for (let col = 0; col < 5; col++) {
+      const bits = FONT[idx * 5 + col];
+      for (let row = 0; row < 7; row++) {
+        if ((bits >> row) & 1) {
+          ctx.fillRect(cx + col * scale, y + row * scale, scale, scale);
+        }
+      }
+    }
+    cx += 6 * scale;
+  }
+  ctx.fillStyle = '#fff';
+}
+
+const oledCanvas = document.createElement('canvas');
+oledCanvas.width = 128;
+oledCanvas.height = 64;
+const octx = oledCanvas.getContext('2d');
+octx.imageSmoothingEnabled = false;
+
+// ---------------------------------------------------------------------------
+// Scene
+// ---------------------------------------------------------------------------
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#0e1013');
+scene.fog = new THREE.Fog('#0e1013', 260, 620);
+
+const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.5, 2000);
+camera.position.set(120, 105, 150);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 20, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.07;
+controls.minDistance = 60;
+controls.maxDistance = 420;
+controls.maxPolarAngle = Math.PI * 0.495;
+controls.minPolarAngle = 0.05;
+
+const hemi = new THREE.HemisphereLight('#c9d7ff', '#14171c', 1.15);
+scene.add(hemi);
+const key = new THREE.DirectionalLight('#ffffff', 2.1);
+key.position.set(90, 165, 120);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.left = -140; key.shadow.camera.right = 140;
+key.shadow.camera.top = 140; key.shadow.camera.bottom = -140;
+key.shadow.camera.far = 500;
+key.shadow.bias = -0.0009;
+scene.add(key);
+const rim = new THREE.DirectionalLight('#7aa2ff', 0.75);
+rim.position.set(-120, 70, -110);
+scene.add(rim);
+
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(420, 64),
+  new THREE.MeshStandardMaterial({ color: '#15181d', roughness: 0.92, metalness: 0.0 })
+);
+ground.rotation.x = -Math.PI / 2;   // circle lies in XY, tip it flat (Y-up world)
+ground.position.y = -0.05;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const grid = new THREE.GridHelper(600, 60, 0x2a3038, 0x1d222a);
+grid.position.y = 0.01;   // GridHelper is already horizontal in a Y-up world
+scene.add(grid);
+
+// ---------------------------------------------------------------------------
+// Materials
+// ---------------------------------------------------------------------------
+const matCase = new THREE.MeshStandardMaterial({ color: '#d9dde4', roughness: 0.62, metalness: 0.05 });
+const matCaseDark = new THREE.MeshStandardMaterial({ color: '#20242b', roughness: 0.78, metalness: 0.1 });
+const matKeycap = new THREE.MeshStandardMaterial({ color: '#f2f4f7', roughness: 0.5, metalness: 0.02 });
+const matKeycapAccent = new THREE.MeshStandardMaterial({ color: '#ff4b3e', roughness: 0.45 });
+const matSwitch = new THREE.MeshStandardMaterial({ color: '#2b3038', roughness: 0.65 });
+const matStem = new THREE.MeshStandardMaterial({ color: '#ff5a4d', roughness: 0.5 });
+const matPcb = new THREE.MeshStandardMaterial({ color: '#1f7a4d', roughness: 0.75 });
+const matChip = new THREE.MeshStandardMaterial({ color: '#14171b', roughness: 0.55, metalness: 0.2 });
+const matMetal = new THREE.MeshStandardMaterial({ color: '#b9c0cb', roughness: 0.32, metalness: 0.85 });
+const matGlass = new THREE.MeshPhysicalMaterial({ color: '#0a0d10', roughness: 0.15, metalness: 0.0, clearcoat: 1.0 });
+const matWireRed = new THREE.MeshStandardMaterial({ color: '#c0392b', roughness: 0.6 });
+const matWireBlk = new THREE.MeshStandardMaterial({ color: '#22262c', roughness: 0.7 });
+
+// ---------------------------------------------------------------------------
+// Geometry helpers
+// ---------------------------------------------------------------------------
+function roundedRectShape(w, d, r) {
+  const s = new THREE.Shape();
+  const hw = w / 2, hd = d / 2;
+  s.moveTo(-hw + r, -hd);
+  s.lineTo(hw - r, -hd);
+  s.absarc(hw - r, -hd + r, r, -Math.PI / 2, 0, false);
+  s.lineTo(hw, hd - r);
+  s.absarc(hw - r, hd - r, r, 0, Math.PI / 2, false);
+  s.lineTo(-hw + r, hd);
+  s.absarc(-hw + r, hd - r, r, Math.PI / 2, Math.PI, false);
+  s.lineTo(-hw, -hd + r);
+  s.absarc(-hw + r, -hd + r, r, Math.PI, Math.PI * 1.5, false);
+  return s;
+}
+
+function rectPath(w, d, cx = 0, cy = 0) {
+  const p = new THREE.Path();
+  p.moveTo(cx - w / 2, cy - d / 2);
+  p.lineTo(cx + w / 2, cy - d / 2);
+  p.lineTo(cx + w / 2, cy + d / 2);
+  p.lineTo(cx - w / 2, cy + d / 2);
+  p.lineTo(cx - w / 2, cy - d / 2);
+  return p;
+}
+
+function circlePath(r, cx, cy) {
+  const p = new THREE.Path();
+  p.absarc(cx, cy, r, 0, Math.PI * 2, true);
+  return p;
+}
+
+function extrude(shape, depth, z0, material, opts = {}) {
+  const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 32, ...opts });
+  const mesh = new THREE.Mesh(geo, material);
+  mesh.position.z = z0;
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
+function box(w, d, h, x, y, z, material) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, d, h), material);
+  m.position.set(x, y, z);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  return m;
+}
+
+function cylinderZ(r, h, x, y, z, material, seg = 48) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg), material);
+  m.rotation.x = Math.PI / 2;
+  m.position.set(x, y, z + h / 2);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  return m;
+}
+
+// ---------------------------------------------------------------------------
+// Bottom case
+// ---------------------------------------------------------------------------
+function buildBottomCase() {
+  const g = new THREE.Group();
+  const outer = roundedRectShape(CASE.w, CASE.d, CASE.corner_r);
+  outer.holes.push(roundedRectShape(CASE.w - 2 * CASE.wall, CASE.d - 2 * CASE.wall, CASE.inner_corner_r));
+  g.add(extrude(outer, PLATE_Z0 - CASE.floor, CASE.floor, matCase));
+
+  // floor plate
+  g.add(extrude(roundedRectShape(CASE.w, CASE.d, CASE.corner_r), CASE.floor, 0, matCase));
+
+  // cut the USB opening visually: a dark inset box in the wall
+  const usbInset = box(XIAO.usb_cut_w, 1.2, XIAO.usb_cut_h, 0, CASE.d / 2 + 0.25,
+    XIAO.usb_cut_z + XIAO.usb_cut_h / 2, matCaseDark);
+  g.add(usbInset);
+
+  // screw bosses
+  for (const [x, y] of SCREW.positions) {
+    g.add(cylinderZ(SCREW.boss_d / 2, SCREW.boss_top_z - CASE.floor, x, y, CASE.floor, matCase, 40));
+    g.add(cylinderZ(SCREW.pilot_d / 2, SCREW.boss_top_z - CASE.floor + 0.2, x, y, CASE.floor + 0.1, matCaseDark, 24));
+  }
+
+  // XIAO rails + front stop + floor pocket
+  const railX = XIAO.board_w / 2 + XIAO.rail_gap + XIAO.rail_w / 2;
+  const railY = (XIAO.y_front + XIAO.y_back) / 2;
+  const railD = XIAO.y_back - XIAO.y_front;
+  for (const s of [-1, 1]) {
+    g.add(box(XIAO.rail_w, railD, XIAO.rail_h, s * railX, railY, CASE.floor + XIAO.rail_h / 2, matCase));
+  }
+  g.add(box(XIAO.board_w, 0.8, XIAO.pocket_d, 0, XIAO.y_front - 0.4, CASE.floor + XIAO.pocket_d / 2, matCase));
+  // pocket floor (darker inset)
+  g.add(box(XIAO.board_w + 0.4, railD + 0.4, 0.2, 0, railY, CASE.floor + 0.1, matCaseDark));
+
+  // feet
+  for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
+    g.add(cylinderZ(3.4, 0.4, sx * (CASE.w / 2 - 8), sy * (CASE.d / 2 - 8), 0, matCaseDark, 24));
+  }
+  return g;
+}
+
+// ---------------------------------------------------------------------------
+// Lid: plate with real openings + skirt + OLED ring + LED lip
+// ---------------------------------------------------------------------------
+function buildTopCase() {
+  const g = new THREE.Group();
+  const plate = roundedRectShape(CASE.w, CASE.d, CASE.corner_r);
+  for (const [x, y] of KEY_CENTERS) plate.holes.push(rectPath(KEYS.cutout, KEYS.cutout, x, y));
+  plate.holes.push(rectPath(OLED.window_w, OLED.window_h, OLED.center_x, OLED.center_y));
+  plate.holes.push(circlePath(LED.lip_hole / 2, LED.center_x, LED.center_y));
+  for (const [x, y] of SCREW.positions) plate.holes.push(circlePath(SCREW.clear_d / 2, x, y));
+
+  const mesh = extrude(plate, CASE.plate, PLATE_Z0, matCase);
+  g.add(mesh);
+
+  // clip relief ring around every switch: visible from below, helps read the CAD
+  for (const [x, y] of KEY_CENTERS) {
+    const ring = roundedRectShape(KEYS.recess, KEYS.recess, 1.0);
+    ring.holes.push(rectPath(KEYS.cutout, KEYS.cutout, 0, 0));
+    const m = extrude(ring, CASE.plate - KEYS.clip_ledge, PLATE_Z0, matCase);
+    m.position.set(x, y, PLATE_Z0);
+    g.add(m);
+  }
+
+  // registration skirt
+  const skirtOuter = roundedRectShape(
+    CASE.w - 2 * CASE.wall - 2 * CASE.lid_clearance,
+    CASE.d - 2 * CASE.wall - 2 * CASE.lid_clearance,
+    CASE.inner_corner_r);
+  skirtOuter.holes.push(roundedRectShape(
+    CASE.w - 2 * CASE.wall - 2 * CASE.lid_clearance - 2 * CASE.lid_skirt_wall,
+    CASE.d - 2 * CASE.wall - 2 * CASE.lid_clearance - 2 * CASE.lid_skirt_wall,
+    CASE.inner_corner_r - CASE.lid_skirt_wall));
+  g.add(extrude(skirtOuter, CASE.lid_skirt_h, PLATE_Z0 - CASE.lid_skirt_h, matCase));
+
+  // OLED retaining ring + ledge
+  const ringOuter = roundedRectShape(OLED.ring_outer, OLED.ring_outer, OLED.ring_corner_r);
+  ringOuter.holes.push(roundedRectShape(
+    OLED.module_w + 2 * OLED.module_clearance,
+    OLED.module_d + 2 * OLED.module_clearance, 0.6));
+  const ring = extrude(ringOuter, PLATE_Z0 - OLED.ring_bottom_z, OLED.ring_bottom_z, matCase);
+  ring.position.set(OLED.center_x, OLED.center_y, OLED.ring_bottom_z);
+  g.add(ring);
+
+  const ledgeOuter = roundedRectShape(OLED.ring_outer, OLED.ring_outer, OLED.ring_corner_r);
+  ledgeOuter.holes.push(roundedRectShape(
+    OLED.module_w + 2 * OLED.module_clearance - 2 * OLED.ledge_w,
+    OLED.module_d + 2 * OLED.module_clearance - 2 * OLED.ledge_w, 1.0));
+  const ledge = extrude(ledgeOuter, OLED.ledge_h, OLED.ring_bottom_z, matCase);
+  ledge.position.set(OLED.center_x, OLED.center_y, OLED.ring_bottom_z);
+  g.add(ledge);
+
+  // LED lip
+  const lipOuter = new THREE.Shape(); lipOuter.absarc(0, 0, LED.hole / 2, 0, Math.PI * 2, false);
+  lipOuter.holes.push(circlePath(LED.lip_hole / 2, 0, 0));
+  const lip = extrude(lipOuter, LED.lip_h, TOP_Z - LED.lip_h, matCase);
+  lip.position.set(LED.center_x, LED.center_y, TOP_Z - LED.lip_h);
+  g.add(lip);
+
+  // LED counterbore ring on the underside
+  g.add(cylinderZ(LED.counterbore / 2, LED.counterbore_h, LED.center_x, LED.center_y,
+    PLATE_Z0, matCaseDark, 32));
+  return g;
+}
+
+// ---------------------------------------------------------------------------
+// Switches, keycaps, OLED module, board, LED
+// ---------------------------------------------------------------------------
+function buildSwitch(x, y) {
+  const g = new THREE.Group();
+  g.position.set(x, y, 0);
+  // lower housing stays inside the 14 mm hole, upper housing sits on the plate
+  g.add(box(KEYS.cutout - 0.6, KEYS.cutout - 0.6, 5.0, 0, 0, TOP_Z - 2.5, matSwitch));
+  g.add(box(15.6, 15.6, 0.6, 0, 0, TOP_Z + 0.3, matSwitch));                 // flange on the plate
+  g.add(box(15.6, 15.6, 4.0, 0, 0, TOP_Z + 2.0, matSwitch));                 // upper housing
+  g.add(box(13.0, 13.0, 3.2, 0, 0, TOP_Z + 5.6, matSwitch));                 // taper to the cap
+  g.add(box(KC.stem_cross_a, KC.stem_cross_b, 6.0, 0, 0, TOP_Z + 5.6, matStem));
+  g.add(box(KC.stem_cross_b, KC.stem_cross_a, 6.0, 0, 0, TOP_Z + 5.6, matStem));
+  // pins
+  g.add(box(1.2, 0.5, KEYS.pin_len, 3.8, 5.1, TOP_Z - 5.0 - KEYS.pin_len / 2, matMetal));
+  g.add(box(1.2, 0.5, KEYS.pin_len, -2.5, -5.1, TOP_Z - 5.0 - KEYS.pin_len / 2, matMetal));
+  return g;
+}
+
+function labelTexture(text, accent) {
+  // transparent canvas: the legend is printed on the cap, not a sticker
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 256;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, 256, 256);
+  ctx.font = 'bold 66px ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = accent ? '#5c0d07' : '#ffffff';
+  ctx.strokeText(text, 128, 132);
+  ctx.fillStyle = accent ? '#ffffff' : '#1b1f25';
+  ctx.fillText(text, 128, 132);
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 8;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function buildKeycap(x, y, label, accent) {
+  const g = new THREE.Group();
+  g.position.set(x, y, KC.rim_z);
+  const body = new THREE.Mesh(new RoundedBoxGeometry(KC.size, KC.size, KC.height, 3, KC.corner_r),
+    accent ? matKeycapAccent : matKeycap);
+  body.position.z = KC.height / 2;
+  body.castShadow = true;
+  body.receiveShadow = true;
+  g.add(body);
+  // legend on the top face
+  const top = new THREE.Mesh(
+    new THREE.PlaneGeometry(KC.size - 2.0, KC.size - 2.0),
+    new THREE.MeshStandardMaterial({
+      map: labelTexture(label, accent), roughness: 0.55, transparent: true, depthWrite: false,
+      toneMapped: false,
+    })
+  );
+  top.position.z = KC.height + 0.01;
+  g.add(top);
+  return g;
+}
+
+function buildOledModule() {
+  const g = new THREE.Group();
+  g.position.set(OLED.center_x, OLED.center_y, 0);
+  const z0 = TOP_Z - CASE.plate - OLED.module_h;
+  const pcb = box(OLED.module_w, OLED.module_d, OLED.module_h, 0, 0, z0 + OLED.module_h / 2, matCaseDark);
+  g.add(pcb);
+  const glass = box(26.7, 19.26, 0.9, 0, 0, z0 + OLED.module_h - 0.45, matGlass);
+  g.add(glass);
+  const screenTex = new THREE.CanvasTexture(oledCanvas);
+  screenTex.colorSpace = THREE.SRGBColorSpace;
+  screenTex.magFilter = THREE.NearestFilter;
+  screenTex.minFilter = THREE.NearestFilter;
+  const screen = new THREE.Mesh(
+    new THREE.PlaneGeometry(21.74, 10.86),
+    new THREE.MeshBasicMaterial({ map: screenTex, toneMapped: false })
+  );
+  screen.position.set(0, 0, z0 + OLED.module_h + 0.02);
+  screen.name = 'oled-screen';
+  g.add(screen);
+  g.userData.screenTex = screenTex;
+  // 4 solder pads at the bottom edge
+  for (let i = 0; i < 4; i++) {
+    g.add(box(1.6, 1.2, 0.4, -4.5 + i * 3.0, -OLED.module_d / 2 + 1.2, z0 + OLED.module_h + 0.2, matMetal));
+  }
+  return g;
+}
+
+function buildLed() {
+  const g = new THREE.Group();
+  const z1 = TOP_Z - LED.lip_h - 0.4;
+  const body = new THREE.Mesh(
+    new THREE.CylinderGeometry(LED.diameter / 2, LED.diameter / 2, 8.6, 32, 1),
+    new THREE.MeshStandardMaterial({ color: '#5c1210', roughness: 0.4, emissive: '#ff2a1c', emissiveIntensity: 0.0 })
+  );
+  body.rotation.x = Math.PI / 2;
+  body.position.set(LED.center_x, LED.center_y, z1 - 4.3);
+  body.name = 'led-body';
+  g.add(body);
+  const dome = new THREE.Mesh(
+    new THREE.SphereGeometry(LED.diameter / 2, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+    body.material
+  );
+  dome.position.set(LED.center_x, LED.center_y, z1);
+  g.add(dome);
+  const glow = new THREE.PointLight('#ff3b2a', 0, 70, 2);
+  glow.position.set(LED.center_x, LED.center_y, z1 + 6);
+  glow.name = 'led-glow';
+  g.add(glow);
+  g.userData.material = body.material;
+  g.userData.light = glow;
+  return g;
+}
+
+function buildXiao() {
+  const g = new THREE.Group();
+  const cz = XIAO.board_z + XIAO.board_t / 2;
+  const cy = (XIAO.y_front + XIAO.y_back) / 2;
+  g.add(box(XIAO.board_w, XIAO.board_d, XIAO.board_t, 0, cy, cz, matPcb));
+  // USB-C shell at the rear edge
+  g.add(box(8.94, 7.2, 3.26, 0, XIAO.y_back + 1.7, cz + 1.63, matMetal));
+  g.add(box(8.2, 1.6, 2.4, 0, XIAO.y_back + 5.1, cz + 1.63, matChip));
+  // RP2040 + flash + regulator
+  g.add(box(7, 7, 0.9, -1.4, cy - 1.2, cz + 0.95, matChip));
+  g.add(box(5, 6, 0.8, 4.6, cy + 3.4, cz + 0.9, matChip));
+  // pin headers down each long edge
+  for (let i = 0; i < 7; i++) {
+    const py = XIAO.y_front + 1.0 + i * 2.54;
+    for (const s of [-1, 1]) {
+      g.add(box(0.64, 0.64, 2.5, s * (XIAO.board_w / 2 - 1.6), py, cz - 1.25, matMetal));
+    }
+  }
+  return g;
+}
+
+function wire(points, material, radius = 0.35) {
+  const curve = new THREE.CatmullRomCurve3(points);
+  const geo = new THREE.TubeGeometry(curve, 40, radius, 6, false);
+  const m = new THREE.Mesh(geo, material);
+  m.castShadow = true;
+  return m;
+}
+
+// ---------------------------------------------------------------------------
+// Assembly
+// ---------------------------------------------------------------------------
+// The model is authored Z-up (same axes as the CAD and the STL files) and laid
+// on its back into three.js' Y-up world once, here.
+const root = new THREE.Group();
+root.rotation.x = -Math.PI / 2;
+scene.add(root);
+
+const trayGroup = new THREE.Group();
+const lidGroup = new THREE.Group();
+root.add(trayGroup, lidGroup);
+
+const bottomCase = buildBottomCase();
+trayGroup.add(bottomCase);
+
+const xiao = buildXiao();
+trayGroup.add(xiao);
+
+const topCase = buildTopCase();
+lidGroup.add(topCase);
+
+// Own material instances for the lid, so "단면 보기" can make only the shell
+// translucent without affecting the tray.
+const lidMaterials = [];
+topCase.traverse((o) => {
+  if (o.isMesh) {
+    o.material = o.material.clone();
+    lidMaterials.push(o.material);
+  }
+});
+function setLidTranslucent(on) {
+  for (const m of lidMaterials) {
+    m.transparent = on;
+    m.opacity = on ? 0.22 : 1.0;
+    m.depthWrite = !on;
+    m.needsUpdate = true;
+  }
+}
+
+const switches = KEY_CENTERS.map(([x, y]) => {
+  const s = buildSwitch(x, y);
+  lidGroup.add(s);
+  return s;
+});
+
+const LABELS = ['REC', '\u25C0', '\u25B6', 'MUTE'];
+const keycaps = KEY_CENTERS.map(([x, y], i) => {
+  const cap = buildKeycap(x, y, LABELS[i], i === 0);
+  lidGroup.add(cap);
+  return cap;
+});
+
+// The OLED is clamped into the lid (ring + ledge), so it lifts with the lid.
+const oledGroup = buildOledModule();
+lidGroup.add(oledGroup);
+
+const ledGroup = buildLed();
+lidGroup.add(ledGroup);
+
+// A few wires from the switches down to the board: the prototype is hand wired.
+const wireTargets = [
+  new THREE.Vector3(3.0, XIAO.y_front + 2.0, XIAO.board_z + 1.0),
+  new THREE.Vector3(-3.0, XIAO.y_front + 4.5, XIAO.board_z + 1.0),
+  new THREE.Vector3(3.0, XIAO.y_front + 7.0, XIAO.board_z + 1.0),
+  new THREE.Vector3(-3.0, XIAO.y_front + 9.5, XIAO.board_z + 1.0),
+];
+KEY_CENTERS.forEach(([x, y], i) => {
+  const from = new THREE.Vector3(x + 3.4, y - 3.5, TOP_Z - 8.0);
+  const mid = new THREE.Vector3(x * 0.35, y * 0.35, TOP_Z - 12.5);
+  trayGroup.add(wire([from, mid, wireTargets[i]], i % 2 ? matWireRed : matWireBlk, 0.28));
+});
+
+// ---------------------------------------------------------------------------
+// Simulation state (this is not OBS - it is a mock that behaves like the bridge)
+// ---------------------------------------------------------------------------
+const sim = {
+  link: 'up',            // 'up' | 'lost'
+  syncing: false,
+  rec: false,
+  elapsed: 0,
+  scene: 0,
+  scenes: SCENE_NAMES,
+  muted: false,
+  seq: 0,
+  pending: 0,
+  lastHostMs: performance.now(),
+  ledOn: false,
+  notice: '',
+  noticeUntil: 0,
+};
+
+const logEl = document.getElementById('log');
+function logLine(text, cls = 'sys') {
+  const div = document.createElement('div');
+  div.className = cls;
+  const t = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+  div.textContent = `${t}  ${text}`;
+  logEl.appendChild(div);
+  while (logEl.children.length > 120) logEl.removeChild(logEl.firstChild);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function fmtTime(sec) {
+  const h = Math.min(99, Math.floor(sec / 3600));
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  return [h, m, s].map((v) => String(v).padStart(2, '0')).join(':');
+}
+
+function drawOled() {
+  octx.fillStyle = '#000';
+  octx.fillRect(0, 0, 128, 64);
+  octx.fillStyle = '#fff';
+
+  const known = sim.link === 'up' && !sim.syncing;
+  const rec = known && sim.rec;
+
+  oledDrawText(octx, 2, 2, fmtTime(sim.elapsed), 2, false);
+  if (rec) oledDrawText(octx, 100, 4, 'REC', 1, true);
+  else if (!known) oledDrawText(octx, 94, 4, 'REC ?', 1, false);
+  else oledDrawText(octx, 102, 4, 'IDLE', 1, false);
+
+  octx.fillStyle = '#fff';
+  octx.fillRect(0, 16, 128, 1);
+
+  oledDrawText(octx, 0, 19, `SCENE ${String(sim.scene + 1).padStart(2, '0')}/${String(sim.scenes.length).padStart(2, '0')}`, 1, false);
+  if (sim.muted) oledDrawText(octx, 104, 19, 'MUTE', 1, true);
+
+  let name = sim.scenes[sim.scene] || '--';
+  while (name.length > 1 && name.length * 6 - 1 > 126) name = name.slice(0, -1);
+  oledDrawText(octx, 0, 28, name, 1, false);
+
+  octx.fillStyle = '#fff';
+  octx.fillRect(0, 37, 128, 1);
+
+  const linkLabel = sim.link === 'up' ? (sim.syncing ? 'SYNCING' : 'USB LINK OK') : 'LINK LOST';
+  oledDrawText(octx, 0, 40, linkLabel, 1, false);
+  if (sim.link === 'up') oledDrawText(octx, 112, 40, `Q${sim.pending}`, 1, false);
+
+  const now = performance.now();
+  if (sim.notice && now < sim.noticeUntil) oledDrawText(octx, 0, 51, sim.notice, 1, true);
+  else oledDrawText(octx, 0, 51, 'TAKEDECK  USB OBS CTRL', 1, false);
+
+  oledGroup.userData.screenTex.needsUpdate = true;
+}
+
+// ---------------------------------------------------------------------------
+// Command flow: what the firmware and the bridge would do, reproduced here
+// ---------------------------------------------------------------------------
+function setNotice(text, ms = 1500) {
+  sim.notice = text;
+  sim.noticeUntil = performance.now() + ms;
+}
+
+async function devicePress(id) {
+  if (sim.link !== 'up') {
+    setNotice('NO LINK');
+    logLine(`키 입력 무시: 링크 없음 (${id})`, 'warn');
+    return;
+  }
+  sim.seq += 1;
+  const seq = sim.seq;
+  sim.pending += 1;
+  logLine(`D CMD seq=${seq} id=${id}`, 'dir-d');
+  // ACK comes back after a short, visible latency
+  setTimeout(() => {
+    sim.pending = Math.max(0, sim.pending - 1);
+    const ok = sim.link === 'up';
+    logLine(`H ACK seq=${seq} ok=${ok ? 1 : 0}${ok ? '' : ' err=OBS_DOWN'}`, 'dir-h');
+    if (!ok) { setNotice('ERR OBS_DOWN'); return; }
+    if (id === 'REC_TOGGLE') sim.rec = !sim.rec;
+    if (id === 'SCENE_NEXT') sim.scene = (sim.scene + 1) % sim.scenes.length;
+    if (id === 'SCENE_PREV') sim.scene = (sim.scene - 1 + sim.scenes.length) % sim.scenes.length;
+    if (id === 'MUTE_TOGGLE') sim.muted = !sim.muted;
+    pushState('명령 반영');
+  }, 180);
+}
+
+function pushState(reason = '') {
+  logLine(`H STATE rec=${sim.rec ? 1 : 0} t=${Math.floor(sim.elapsed)} scene="${sim.scenes[sim.scene]}" idx=${sim.scene} cnt=${sim.scenes.length} mute=${sim.muted ? 1 : 0}${reason ? '   // ' + reason : ''}`, 'dir-h');
+  updateStatus();
+}
+
+function setLink(up) {
+  if (up) {
+    sim.link = 'up';
+    sim.syncing = true;
+    sim.seq = 0;
+    sim.pending = 0;
+    logLine('D HELLO v=1 fw=1.0.0 sid=DEMO0001', 'dir-d');
+    logLine('H HELLO v=1', 'dir-h');
+    setTimeout(() => {
+      sim.syncing = false;
+      logLine('H STATE ... (재동기화)', 'dir-h');
+      setNotice('LINKED');
+      updateStatus();
+    }, 700);
+  } else {
+    sim.link = 'lost';
+    logLine('USB 연결 끊김 — 상태 알 수 없음', 'warn');
+    setNotice('LINK LOST', 4000);
+    updateStatus();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// UI wiring
+// ---------------------------------------------------------------------------
+const explode = document.getElementById('explode');
+const explodeLabel = document.getElementById('explodeLabel');
+const lidState = { open: false, peek: false, lift: 0 };
+let explodeT = 0;
+let playing = false;
+
+document.getElementById('explodePlay').addEventListener('click', () => { playing = true; });
+document.getElementById('explodeReset').addEventListener('click', () => {
+  playing = false; explode.value = '0'; explodeT = 0; explodeLabel.textContent = '0.0 s';
+});
+document.getElementById('lidToggle').addEventListener('click', (e) => {
+  lidState.open = !lidState.open;
+  e.currentTarget.textContent = lidState.open ? '케이스 닫기' : '케이스 열기';
+});
+document.getElementById('lidPeek').addEventListener('click', (e) => {
+  lidState.peek = !lidState.peek;
+  e.currentTarget.setAttribute('aria-pressed', String(lidState.peek));
+  setLidTranslucent(lidState.peek);
+});
+document.getElementById('btnRec').addEventListener('click', () => devicePress('REC_TOGGLE'));
+document.getElementById('btnPrev').addEventListener('click', () => devicePress('SCENE_PREV'));
+document.getElementById('btnNext').addEventListener('click', () => devicePress('SCENE_NEXT'));
+document.getElementById('btnMute').addEventListener('click', () => devicePress('MUTE_TOGGLE'));
+document.getElementById('btnLink').addEventListener('click', (e) => {
+  if (sim.link === 'up') { setLink(false); e.currentTarget.textContent = '연결 복구'; }
+  else { setLink(true); e.currentTarget.textContent = '연결 끊기'; }
+});
+document.getElementById('btnObs').addEventListener('click', () => {
+  // Proves the indicator follows OBS, not the button: no device command is sent.
+  sim.rec = !sim.rec;
+  logLine(`(OBS UI에서 직접 ${sim.rec ? '녹화 시작' : '녹화 중지'})`, 'sys');
+  pushState('OBS에서 직접 변경');
+});
+explode.addEventListener('input', () => {
+  playing = false;
+  explodeT = parseFloat(explode.value);
+});
+
+// World is Y-up: the model's Z (height) is world Y and its +Y (back) is world -Z.
+const VIEWS = {
+  // The user stands at model -Y, which is world +Z, so the front and the OLED
+  // read from +Z (the key legends are oriented for that side).
+  iso: { pos: [112, 100, 158], target: [0, 20, 0] },
+  top: { pos: [0, 250, 2], target: [0, 18, 0] },
+  front: { pos: [0, 78, 210], target: [0, 20, 0] },
+  side: { pos: [215, 62, 16], target: [0, 20, 0] },
+  oled: { pos: [0, 84, 132], target: [0, 26, 14] },
+};
+let camTween = null;
+document.querySelectorAll('#views button').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#views button').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    btn.setAttribute('aria-pressed', 'true');
+    const v = VIEWS[btn.dataset.view];
+    camTween = {
+      t: 0,
+      fromPos: camera.position.clone(), toPos: new THREE.Vector3(...v.pos),
+      fromTarget: controls.target.clone(), toTarget: new THREE.Vector3(...v.target),
+    };
+  });
+});
+
+function updateStatus() {
+  const linkEl = document.getElementById('stLink');
+  linkEl.innerHTML = sim.link === 'up'
+    ? `<span class="pill on">정상</span>`
+    : `<span class="pill lost">끊김</span>`;
+  document.getElementById('stRec').textContent = sim.link === 'up' ? (sim.rec ? '녹화 중' : '꺼짐') : '알 수 없음';
+  document.getElementById('stTime').textContent = fmtTime(sim.elapsed);
+  document.getElementById('stScene').textContent =
+    `${sim.scene + 1}/${sim.scenes.length} · ${sim.scenes[sim.scene]}`;
+  document.getElementById('stCmd').textContent =
+    `seq ${sim.seq} · 대기 ${sim.pending}`;
+  const led = sim.link === 'up' ? (sim.rec ? '점등(고정)' : '꺼짐') : '점멸(상태 불명)';
+  document.getElementById('stLed').textContent = led;
+  const btn = document.getElementById('btnRec');
+  btn.classList.toggle('on', sim.link === 'up' && sim.rec);
+}
+
+// ---------------------------------------------------------------------------
+// Animation
+// ---------------------------------------------------------------------------
+const clock = new THREE.Clock();
+let lastLedBlink = 0;
+let lastStatusPaint = 0;
+let fpsAcc = 0, fpsFrames = 0;
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+function clamp01(v) { return Math.min(1, Math.max(0, v)); }
+
+function applyExplode(t) {
+  // t in seconds, 0..12: keycaps first, then the lid, then the internals
+  const cap = ease(clamp01(t / 3.0));
+  const lid = ease(clamp01((t - 2.0) / 4.0));
+  const inner = ease(clamp01((t - 5.0) / 5.0));
+  const spread = ease(clamp01((t - 6.5) / 5.5));
+
+  keycaps.forEach((k, i) => {
+    k.position.z = KC.rim_z + cap * 26 + i * 0.6;
+  });
+
+  const lift = Math.max(lid * 46, lidState.lift);
+  lidGroup.position.set(0, 0, lift);
+  lidGroup.rotation.x = -0.16 * lid;
+
+  oledGroup.position.set(0 + spread * 0, OLED.center_y - spread * 22, spread * 13);
+  oledGroup.rotation.x = -spread * 0.35;
+
+  xiao.position.set(spread * 30, -spread * 9, inner * 15);
+  xiao.rotation.z = -spread * 0.25;
+}
+
+function tick() {
+  requestAnimationFrame(tick);
+  const dt = Math.min(clock.getDelta(), 0.1);
+  const now = performance.now();
+
+  if (playing) {
+    explodeT = Math.min(12, explodeT + dt * 2.2);
+    explode.value = String(explodeT);
+    if (explodeT >= 12) playing = false;
+  }
+  explodeLabel.textContent = `${explodeT.toFixed(1)} s`;
+
+  // lid open animation (independent of the explode slider)
+  const targetLift = lidState.open ? 34 : 0;
+  lidState.lift += (targetLift - lidState.lift) * Math.min(1, dt * 5.5);
+
+  applyExplode(explodeT);
+
+  // simulation clock: only while OBS is actually recording and the link is up
+  if (sim.link === 'up' && sim.rec) sim.elapsed += dt;
+
+  // LED: solid while recording, blinking when the state is unknown
+  let ledOn = false;
+  if (sim.link === 'up') ledOn = sim.rec;
+  else ledOn = (now % 1000) < 120;
+
+  const ledMat = ledGroup.userData.material;
+  const glow = ledGroup.userData.light;
+  ledMat.emissiveIntensity = ledOn ? 2.6 : 0.0;
+  ledMat.color.set(ledOn ? '#ff3a2c' : '#5c1210');
+  glow.intensity = ledOn ? 55 : 0;
+  sim.ledOn = ledOn;
+
+  drawOled();
+
+  // the status panel shows the running time too, so refresh it a few times a second
+  if (now - lastStatusPaint > 250) {
+    lastStatusPaint = now;
+    updateStatus();
+  }
+
+  if (camTween) {
+    camTween.t = Math.min(1, camTween.t + dt * 2.2);
+    const k = ease(camTween.t);
+    camera.position.lerpVectors(camTween.fromPos, camTween.toPos, k);
+    controls.target.lerpVectors(camTween.fromTarget, camTween.toTarget, k);
+    if (camTween.t >= 1) camTween = null;
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+
+  fpsAcc += dt; fpsFrames++;
+  if (fpsAcc > 0.5) {
+    document.getElementById('fps').textContent = `${Math.round(fpsFrames / fpsAcc)} fps`;
+    fpsAcc = 0; fpsFrames = 0;
+  }
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Keyboard shortcuts so the preview can be driven while watching the panel
+window.addEventListener('keydown', (e) => {
+  if (e.target instanceof HTMLInputElement) return;
+  if (e.code === 'Space') { e.preventDefault(); devicePress('REC_TOGGLE'); }
+  if (e.code === 'ArrowLeft') devicePress('SCENE_PREV');
+  if (e.code === 'ArrowRight') devicePress('SCENE_NEXT');
+  if (e.key === 'm' || e.key === 'M') devicePress('MUTE_TOGGLE');
+});
+
+// ---------------------------------------------------------------------------
+// Start
+// ---------------------------------------------------------------------------
+drawOled();
+updateStatus();
+logLine('시뮬레이션 시작 — 실제 OBS/하드웨어와 연결되어 있지 않습니다', 'sys');
+logLine('D HELLO v=1 fw=1.0.0 sid=DEMO0001', 'dir-d');
+logLine('H HELLO v=1', 'dir-h');
+pushState('초기 상태');
+tick();
+</script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+{
+  "generated_at": "2026-11-19T09:31:47",
+  "kernel": "trimesh 5.2.1 / manifold3d",
+  "parts": [
+    {
+      "part": "bottom_case",
+      "watertight": true,
+      "winding_consistent": true,
+      "volume_mm3": 32869.45,
+      "bbox_mm": [
+        96.0,
+        74.0,
+        21.0
+      ],
+      "triangles": 2804,
+      "vertices": 1402
+    },
+    {
+      "part": "top_case",
+      "watertight": true,
+      "winding_consistent": true,
+      "volume_mm3": 19187.27,
+      "bbox_mm": [
+        96.0,
+        74.0,
+        6.6
+      ],
+      "triangles": 4730,
+      "vertices": 2347
+    },
+    {
+      "part": "keycap",
+      "watertight": true,
+      "winding_consistent": true,
+      "volume_mm3": 2031.2,
+      "bbox_mm": [
+        18.0,
+        18.0,
+        8.0
+      ],
+      "triangles": 464,
+      "vertices": 234
+    }
+  ],
+  "interference_checks": [
+    {
+      "check": "shell vs xiao[0]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs usb_plug[0]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs oled[0]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs switches[0]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs switches[1]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs switches[2]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs switches[3]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs keycaps[0]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs keycaps[1]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs keycaps[2]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs keycaps[3]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs led[0]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs screws[0]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs screws[1]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs screws[2]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "shell vs screws[3]",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "positive control: block through the plate",
+      "intersection_mm3": 199.642499,
+      "ok": true,
+      "expectation": "must overlap"
+    },
+    {
+      "check": "keycap socket clears the MX stem",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "keycap at 4 mm travel clears the plate",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "USB-C plug corridor through rear wall",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "14 mm switch cutout open",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    },
+    {
+      "check": "OLED window open",
+      "intersection_mm3": 0.0,
+      "ok": true,
+      "expectation": "no interference"
+    }
+  ],
+  "scad_consistency": {
+    "ok": true,
+    "compared": 76,
+    "mismatches": []
+  },
+  "failures": 0,
+  "elapsed_s": 0.5
+}

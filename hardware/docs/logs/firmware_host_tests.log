@@ -1,0 +1,11 @@
+# host unit tests 2026-11-19T00:30:11Z
+# compiler: zig cc 0.13.0 (clang 18.1.6) — the container has no host gcc
+
+== compiler: /workspace/.local/tc/zig-linux-x86_64-0.13.0/zig cc
+clang version 18.1.6 (https://github.com/ziglang/zig-bootstrap 98bc6bf4fc4009888d33941daf6b600d20a42a56)
+== building test_logic
+== running test_logic
+130 checks, 0 failures
+== building host_sim
+== host_sim built: /workspace/pickle-benchmarks/hardware/firmware/test/build/host_sim
+OK

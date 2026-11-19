@@ -1,0 +1,24 @@
+# firmware build 2026-11-19T00:29:10Z
+# host: Linux 6.12.8+ x86_64
+# cmake: cmake version 4.4.5
+# ninja: 1.13.2.git.kitware.jobserver-pipe-1
+# arm-none-eabi-gcc: arm-none-eabi-gcc (Arm GNU Toolchain 12.3.Rel1 (Build arm-12.35)) 12.3.1 20230626
+# pico-sdk: 1.5.1 (/workspace/.local/sdk/pico-sdk)
+# command: cmake -S firmware -B firmware/build -G Ninja -DPICO_BOARD=pico -DPICO_TOOLCHAIN_PATH=<arm-gnu-toolchain-12.3.rel1>
+#          cmake --build firmware/build
+
+TinyUSB available at /workspace/.local/sdk/pico-sdk/lib/tinyusb/src/portable/raspberrypi/rp2040; enabling build support for USB.
+-- Configuring done (6.7s)
+-- Generating done (3.5s)
+-- Build files have been written to: /workspace/pickle-benchmarks/hardware/firmware/build
+[87/89] Building C object CMakeFiles/takedeck.dir/workspace/.local/sdk/pico-sdk/src/rp2_common/pico_rand/rand.c.obj
+[88/89] Building C object CMakeFiles/takedeck.dir/workspace/.local/sdk/pico-sdk/src/rp2_common/hardware_i2c/i2c.c.obj
+[89/89] Linking CXX executable takedeck.elf
+
+# artifacts:
+-rwxr-xr-x 1 1000 1000  51312 Nov 19 09:30 firmware/build/takedeck.bin
+-rwxr-xr-x 1 1000 1000 101020 Nov 19 09:30 firmware/build/takedeck.elf
+-rw-r--r-- 1 1000 1000 102912 Nov 19 09:30 firmware/build/takedeck.uf2
+
+# own-source warnings (should be none):
+0

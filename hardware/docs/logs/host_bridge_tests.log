@@ -1,0 +1,48 @@
+# host bridge tests 2026-11-19T00:30:14Z
+# python: Python 3.12.16 · pyserial 3.5 · simpleobsws 1.4.3 · websockets 17.4 · pytest 9.2.0
+
+platform linux -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /workspace/pickle-benchmarks/hardware/host
+plugins: anyio-4.16.0
+collecting ... collected 37 items
+
+tests/test_bridge.py::test_hello_is_answered_with_state PASSED           [  2%]
+tests/test_bridge.py::test_ping_is_answered_with_pong PASSED             [  5%]
+tests/test_bridge.py::test_rec_toggle_starts_and_updates_state PASSED    [  8%]
+tests/test_bridge.py::test_rec_toggle_stops_when_already_recording PASSED [ 10%]
+tests/test_bridge.py::test_duplicate_command_is_not_executed_twice PASSED [ 13%]
+tests/test_bridge.py::test_duplicate_suppression_survives_a_bridge_restart PASSED [ 16%]
+tests/test_bridge.py::test_sequence_numbers_are_scoped_per_device_session PASSED [ 18%]
+tests/test_bridge.py::test_scene_next_and_prev_wrap_around PASSED        [ 21%]
+tests/test_bridge.py::test_mute_without_configured_input_reports_error_and_is_not_cached PASSED [ 24%]
+tests/test_bridge.py::test_unknown_command_is_rejected PASSED            [ 27%]
+tests/test_bridge.py::test_obs_outage_is_announced_and_recovered PASSED  [ 29%]
+tests/test_bridge.py::test_command_while_obs_down_is_acknowledged_as_failure PASSED [ 32%]
+tests/test_bridge.py::test_state_is_pushed_on_the_configured_period_only PASSED [ 35%]
+tests/test_bridge.py::test_garbage_lines_are_ignored PASSED              [ 37%]
+tests/test_bridge.py::test_device_note_is_logged_not_answered PASSED     [ 40%]
+tests/test_integration.py::test_key_press_reaches_obs_and_led_follows_obs PASSED [ 43%]
+tests/test_integration.py::test_obs_loss_is_announced_then_recovered PASSED [ 45%]
+tests/test_integration.py::test_duplicate_press_retry_does_not_double_toggle PASSED [ 48%]
+tests/test_integration.py::test_device_disappearing_ends_the_run_cleanly PASSED [ 51%]
+tests/test_obs_ws.py::test_state_roundtrip_over_websocket PASSED         [ 54%]
+tests/test_obs_ws.py::test_scene_cycling_uses_reported_order PASSED      [ 56%]
+tests/test_obs_ws.py::test_scene_names_from_obs_order_are_normalised PASSED [ 59%]
+tests/test_obs_ws.py::test_mute_requires_and_uses_configured_input PASSED [ 62%]
+tests/test_obs_ws.py::test_mute_without_input_name_raises_a_stable_code PASSED [ 64%]
+tests/test_obs_ws.py::test_password_authentication PASSED                [ 67%]
+tests/test_obs_ws.py::test_wrong_password_is_reported_as_connect_error PASSED [ 70%]
+tests/test_obs_ws.py::test_unknown_scene_request_is_rejected_by_server PASSED [ 72%]
+tests/test_obs_ws.py::test_connection_refused_is_a_connect_error PASSED  [ 75%]
+tests/test_obs_ws.py::test_recording_started_in_obs_is_seen_by_the_backend PASSED [ 78%]
+tests/test_protocol.py::test_parse_hello PASSED                          [ 81%]
+tests/test_protocol.py::test_parse_cmd PASSED                            [ 83%]
+tests/test_protocol.py::test_parse_quoted_scene_with_spaces PASSED       [ 86%]
+tests/test_protocol.py::test_parse_escaped_quote_in_scene PASSED         [ 89%]
+tests/test_protocol.py::test_parse_rejects_garbage PASSED                [ 91%]
+tests/test_protocol.py::test_state_roundtrip_of_awkward_scene_name PASSED [ 94%]
+tests/test_protocol.py::test_format_helpers PASSED                       [ 97%]
+tests/test_protocol.py::test_quote_keeps_simple_tokens_bare PASSED       [100%]
+
+============================== 37 passed in 9.23s ==============================

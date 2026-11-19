@@ -1,0 +1,9 @@
+# preview static checks 2026-11-19T00:29:01Z
+preview checks
+  ok    embedded dimensions match enclosure/params.json
+  ok    module script parses (31888 chars)
+  ok    CDN 200 https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js
+  ok    CDN 200 https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/controls/OrbitControls.js
+  ok    CDN 200 https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/geometries/RoundedBoxGeometry.js
+
+0 problem(s), 5 ok

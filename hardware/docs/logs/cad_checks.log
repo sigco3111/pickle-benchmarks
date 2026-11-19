@@ -1,0 +1,10 @@
+# CAD generation and interference checks 2026-11-19T00:31:44Z
+# python Python 3.12.16 · trimesh + manifold3d CSG · shapely 2.2 · mapbox_earcut
+
+bottom_case     137.0 kB  tri=  2804 watertight=True bbox=[96. 74. 21.]
+top_case        231.0 kB  tri=  4730 watertight=True bbox=[96.  74.   6.6]
+keycap           22.7 kB  tri=   464 watertight=True bbox=[18. 18.  8.]
+rendered previews into /workspace/pickle-benchmarks/hardware/docs
+
+22 interference checks, 0 failure(s), 2.1s
+scad consistency: {'ok': True, 'compared': 76, 'mismatches': []}

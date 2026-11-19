@@ -1,0 +1,17 @@
+# preview in a real browser (headless Chromium 159 / Playwright) 2026-11-19T00:35:51Z
+# software rendering (SwiftShader): the fps number is not a performance claim
+127.0.0.1 - - [19/Nov/2026 09:35:53] "GET /preview/index.html HTTP/1.1" 200 -
+shot /workspace/pickle-benchmarks/hardware/docs/preview_assembled.png
+shot /workspace/pickle-benchmarks/hardware/docs/preview_recording.png
+after REC: {'led': '점등(고정)', 'rec': '녹화 중', 'time': '00:00:01'}
+shot /workspace/pickle-benchmarks/hardware/docs/preview_obs_side.png
+shot /workspace/pickle-benchmarks/hardware/docs/preview_link_lost.png
+after link loss: {'led': '점멸(상태 불명)', 'rec': '알 수 없음', 'link': '끊김'}
+after reconnect: 정상
+shot /workspace/pickle-benchmarks/hardware/docs/preview_case_open.png
+shot /workspace/pickle-benchmarks/hardware/docs/preview_exploded.png
+shot /workspace/pickle-benchmarks/hardware/docs/preview_oled_closeup.png
+shot /workspace/pickle-benchmarks/hardware/docs/preview_top.png
+page state: {'led': '꺼짐', 'rec': '꺼짐', 'link': '정상', 'time': '00:00:02', 'fps': '10 fps', 'logLines': 16, 'canvas': True}
+
+0 problem(s), 0 console error(s)

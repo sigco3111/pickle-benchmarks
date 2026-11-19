@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+hardware/firmware/build/
+hardware/firmware/test/build/
+.DS_Store
+node_modules/
