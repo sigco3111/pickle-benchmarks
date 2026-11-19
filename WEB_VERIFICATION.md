@@ -31,7 +31,7 @@
 | # | 과제 | 정적 검사 | 헤드리스 브라우저 | 단위·통합 테스트 | 빌드/CAD |
 |---|---|---|---|---|---|
 | 01 | 궁전 브릭 모션 | ✅ 전체 통과 | ✅ 콘솔 오류 0 | ✅ 집계·재현성 스크립트 | — |
-| 02 | 한강시 게임 | ✅ `node --check` | ⚠️ 로드·시뮬레이션 정상, **셰이더 콘솔 오류 1건** | ✅ 60 Hz 결정론 시뮬레이션 | — |
+| 02 | 한강시 게임 | ✅ `node --check` | ✅ 콘솔 오류 0 (셰이더 가드 수정 후, §3-2) | ✅ 60 Hz 결정론 시뮬레이션 | — |
 | 03 | 소개 페이지 | ✅ 태그·괄호 균형 | ✅ 콘솔 오류 0 (6구간·테마·모바일·폴백) | — | — |
 | 04 | 단편 소설 | ✅ 파서·문자열 대조 | ✅ 로드·렌더 확인 | — | — |
 | 05 | 촬영 컨트롤러 | ✅ SVG·넷리스트 대조 | ✅ 프리뷰 콘솔 오류 0 | ✅ 펌웨어 130검사 · 브리지 37테스트 | ✅ ARM 빌드 · STL 22검사 |
@@ -93,17 +93,27 @@
 
 화면 캡처: [`screenshots/hangang-city-01-overview.png`](screenshots/hangang-city-01-overview.png) 외 3장(낮 스카이라인·주행 HUD·야간 조명·레이스 HUD).
 
-**통합 단계 재검증에서 발견한 미해결 항목 (2026-11-19)**
+**통합 단계 재검증에서 발견해 수정한 항목 (2026-11-19)**
 
 - 증상: 로드 후 콘솔에 셰이더 컴파일 오류 1건.
   `THREE.WebGLProgram: Shader Error 0 — VALIDATE_STATUS false … MeshStandardMaterial … ERROR: 0:472: 'vColor' : undeclared identifier`,
   이어서 `WebGL: INVALID_OPERATION: useProgram: program not valid` 경고가 간헐 반복(관측 17초 동안 22회).
 - 원인(코드 확인): `enableInstanceColor()`가 `#include <color_vertex>` 뒤에 `vInstColor = vColor;`를 조건 없이 붙인다.
   해당 재질이 처음 컴파일되는 시점에 인스턴스 색상 속성이 아직 없으면 `vColor`가 선언되지 않아 프로그램이 무효가 된다.
-- 영향: 시작 후 장면·HUD·미니맵은 정상 렌더된다(상태값: 건물 764동, 네온 간판 170, 차량 61대, 램프 7). 다만 무효 프로그램을 쓰는 메시는 그려지지 않으므로 일부 요소가 보이지 않을 수 있다. 화면상 뚜렷한 누락은 확인하지 못했다.
-- 상태: **원본은 고치지 않았다.** 벤치마크 결과물을 그대로 보존하기 위해서다. 복사본에 셰이더 가드
-  (`#if defined(USE_COLOR) || defined(USE_INSTANCING_COLOR) || defined(USE_BATCHING_COLOR)` … `#else vInstColor = vec3(1.0)`)를
-  적용해 시험한 결과 콘솔 오류 0, 상태값·화면 동일함을 확인했다. 적용 여부는 사용자 결정 사항으로 남긴다.
+- 영향: 시작 후 장면·HUD·미니맵은 정상 렌더됐다(상태값: 건물 764동, 네온 간판 170, 차량 61대, 램프 7). 다만 무효 프로그램을 쓰는 메시는 그려지지 않으므로 일부 요소가 보이지 않을 수 있었다.
+- 수정: `enableInstanceColor()`의 버텍스 셰이더 주입을 조건부로 바꿨다(4줄 삽입, 동작 변경 없음).
+
+  ```js
+  .replace('#include <color_vertex>', '#include <color_vertex>\n'
+    + '#if defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR ) || defined( USE_BATCHING_COLOR )\n'
+    + '  vInstColor = vColor;\n'
+    + '#else\n  vInstColor = vec3(1.0);\n#endif\n');
+  ```
+
+- 수정 후 재검증(헤드리스 Chromium 159·SwiftShader, 1440×900): **콘솔 오류 0건**, 페이지 예외 0건,
+  상태값 동일(건물 764·간판 170·차량 61), 장면·HUD·미니맵 스크린샷 정상, 결정론 시뮬레이션(`?sim`) 시나리오도 오류 없이 동작.
+  남은 경고 4건은 SwiftShader의 GL 드라이버 성능 안내 메시지다.
+- 결과: 01·02·03·04·05·목차 **전 페이지 콘솔 오류 0건**을 달성했다.
 
 **검증하지 못한 것**: 실제 GPU에서의 **60 fps**(SwiftShader라 프레임 시간이 의미 없음), 오디오(넣지 않음), 터치 조작(데스크톱 키보드·마우스 기준).
 
@@ -239,11 +249,11 @@ cd hardware/preview && python3 build_preview.py && python3 check_preview.py && p
 | 검사 | 방법 | 결과 |
 |---|---|---|
 | HTML 태그 균형 | `html.parser` 기반 검사기로 6개 HTML(index·palace·hangang·model-intro·novel·1-controller-3d) | 미닫힘 0, 불일치 0, 중복 id 0 |
-| CSS 중괄호 | 동일 검사기로 `{`/`}` 개수 대조 | index 65/65 · palace 326/326 · hangang 768/768 · model-intro 413/413 · novel 98/98 · controller 183/183 |
+| CSS 중괄호 | 동일 검사기로 `{`/`}` 개수 대조 | index 71/71 · palace 326/326 · hangang 768/768 · model-intro 413/413 · novel 98/98 · controller 183/183 |
 | 내부 링크 | index.html의 모든 `href`를 로컬 서버에서 GET | 18개 중 로컬 링크 전부 **200**(작성 시점에 미작성 문서 1건 → 작성 후 재검사 200) |
 | 문서 링크 | README·WEB_VERIFICATION·NOVEL_README·hardware 문서의 마크다운 링크 대상 존재 확인 | 깨진 링크 0 |
 | 페이지 로드 | 헤드리스 Chromium 1440×900, 6개 페이지 | 전부 **200** |
-| 콘솔/페이지 오류 | 위 로드에서 수집 | 01·03·04·05·index **0** · 02 **셰이더 오류 1건**(§3-2) |
+| 콘솔/페이지 오류 | 위 로드에서 수집 | 01·03·04·05·index **0** · 02 수정 전 1건 → **가드 수정 후 0건**(§3-2) |
 | 01 수치 재측정 | 페이지 내 `PALACE_APP.model` | 브릭 1,963·단계 21·에러 0·경고 3→0·치수 4,200/2,500/3,600 cm |
 | 02 상태 확인 | `HC.state()` | 건물 764·간판 170·차량 61·램프 7·수배 0 |
 | 03 상태 확인 | `__pickle.stats()` | ready, 파티클 6,900, 테마 light, 자리표시자 4 |
@@ -251,3 +261,11 @@ cd hardware/preview && python3 build_preview.py && python3 check_preview.py && p
 | 05 프리뷰 확인 | DOM 확인 | 200, canvas 존재, 콘솔 0, 버튼 15 |
 
 이 표의 값은 통합 단계에서 직접 측정한 것이고, 3장의 과제별 표는 각 과제 작업에서 실행해 기록된 결과와 통합 단계 재측정을 함께 적은 것이다.
+
+## 7. 수정 이력
+
+| 날짜 | 파일 | 변경 | 사유 |
+|---|---|---|---|
+| 2026-11-19 | `hangang-city.html` | `enableInstanceColor()`의 `vInstColor` 주입을 4줄 조건부 가드로 교체 | 통합 재검증에서 발견한 셰이더 컴파일 오류(`vColor` 미선언) 제거. 수정 후 콘솔 오류 0건 |
+| 2026-11-19 | `ORIGINAL_PROMPTS.txt` | 실행 주체 표기를 `Pickle`로 정정 | 보안 규칙(실행 주체 `Pickle`, 세부 모델명·effort 미지정). 과제 원문과 자리표시자는 변경 없음 |
+| 2026-11-19 | `index.html`·`README.md`·`WEB_VERIFICATION.md`·`.gitignore` | 신규 작성 | 목차·문서·검증 기록 통합 |
